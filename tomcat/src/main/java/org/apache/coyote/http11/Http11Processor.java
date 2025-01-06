@@ -2,6 +2,8 @@ package org.apache.coyote.http11;
 
 import com.techcourse.exception.UncheckedServletException;
 import org.apache.coyote.Processor;
+import org.apache.coyote.http11.request.Http11Request;
+import org.apache.coyote.http11.request.Http11RequestBuilder;
 import org.apache.coyote.http11.response.ContentType;
 import org.apache.coyote.http11.response.Http11Response;
 import org.apache.coyote.http11.response.Http11ResponseBuilder;
@@ -9,9 +11,11 @@ import org.apache.coyote.http11.response.Http11ResponseWriter;
 import org.apache.coyote.http11.response.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
+import java.net.URL;
+import java.nio.file.Files;
 
 public class Http11Processor implements Runnable, Processor {
 
@@ -34,7 +38,8 @@ public class Http11Processor implements Runnable, Processor {
         try (final var inputStream = connection.getInputStream();
              final var outputStream = connection.getOutputStream()) {
 
-            Http11Response response = Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, "Hello world!");
+            Http11Request request = Http11RequestBuilder.build(inputStream);
+            Http11Response response = catalina(request);
 
             outputStream.write(Http11ResponseWriter.write(response));
             outputStream.flush();
@@ -42,5 +47,17 @@ public class Http11Processor implements Runnable, Processor {
         } catch (IOException | UncheckedServletException e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    public Http11Response catalina(Http11Request request) throws IOException {
+        if (request.getRequestLine().getUri().equals("/")) {
+            return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, "Hello world!");
+        }
+        if (request.getRequestLine().getUri().equals("/index.html")) {
+            final URL resource = getClass().getClassLoader().getResource("static/index.html");
+            final String responseBody = new String(Files.readAllBytes(new File(resource.getFile()).toPath()));
+            return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, responseBody);
+        }
+        return null;
     }
 }
