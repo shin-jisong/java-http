@@ -3,12 +3,12 @@ package org.apache.coyote.http11.request;
 public class RequestLine {
 
     private final HttpMethod httpMethod;
-    private final String uri;
+    private final RequestUri requestUri;
     private final String httpVersion;
 
-    public RequestLine(HttpMethod httpMethod, String uri, String httpVersion) {
+    public RequestLine(HttpMethod httpMethod, RequestUri requestUri, String httpVersion) {
         this.httpMethod = httpMethod;
-        this.uri = uri;
+        this.requestUri = requestUri;
         this.httpVersion = httpVersion;
     }
 
@@ -16,8 +16,12 @@ public class RequestLine {
         return httpMethod;
     }
 
+    public RequestUri getRequestUri() {
+        return requestUri;
+    }
+
     public String getUri() {
-        return uri;
+        return requestUri.getUri();
     }
 
     public String getHttpVersion() {

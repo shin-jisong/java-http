@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Http11RequestBuilder {
 
@@ -32,7 +34,41 @@ public class Http11RequestBuilder {
         String httpVersion = requestParts[2];
 
         validateHttpVersion(httpVersion);
-        return new RequestLine(HttpMethod.from(method), uri, HTTP_11);
+        return new RequestLine(HttpMethod.from(method), buildRequestUri(uri), HTTP_11);
+    }
+
+    private static RequestUri buildRequestUri(String uri) {
+        String baseUri;
+        Map<String, String> queryParams = new HashMap<>();
+        int queryIndex = uri.indexOf('?');
+        if (queryIndex == -1) {
+            baseUri = uri;
+            return new RequestUri(baseUri, queryParams);
+        }
+        baseUri = processQueryString(uri, queryIndex, queryParams);
+        return new RequestUri(baseUri, queryParams);
+    }
+
+    private static String processQueryString(String uri, int queryIndex, Map<String, String> queryParams) {
+        String baseUri;
+        baseUri = uri.substring(0, queryIndex);
+        String queryString = uri.substring(queryIndex + 1);
+
+        String[] pairs = queryString.split("&");
+        for (String pair : pairs) {
+            buildQueryParams(pair, queryParams);
+        }
+        return baseUri;
+    }
+
+    private static void buildQueryParams(String pair, Map<String, String> queryParams) {
+        String[] keyValue = pair.split("=", 2);
+        if (keyValue.length == 2) {
+            queryParams.put(keyValue[0], keyValue[1]);
+        }
+        if (keyValue.length == 1) {
+            queryParams.put(keyValue[0], "");
+        }
     }
 
     private static RequestHeader buildRequestHeader(BufferedReader reader) throws IOException {
