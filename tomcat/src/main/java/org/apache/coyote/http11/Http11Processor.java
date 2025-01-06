@@ -53,11 +53,14 @@ public class Http11Processor implements Runnable, Processor {
         if (request.getRequestLine().getUri().equals("/")) {
             return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, "Hello world!");
         }
-        if (request.getRequestLine().getUri().equals("/index.html")) {
-            final URL resource = getClass().getClassLoader().getResource("static/index.html");
-            final String responseBody = new String(Files.readAllBytes(new File(resource.getFile()).toPath()));
-            return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, responseBody);
-        }
-        return null;
+
+        final URL resource = getClass().getClassLoader().getResource("static/" + request.getRequestLine().getUri());
+        String filePath = resource.getFile();
+        int dotIndex = filePath.lastIndexOf('.');
+        String extension = filePath.substring(dotIndex + 1);
+
+        final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
+
+        return Http11ResponseBuilder.build(StatusCode.OK, ContentType.fromExtension(extension), responseBody);
     }
 }
