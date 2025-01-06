@@ -1,6 +1,8 @@
 package org.apache.coyote.http11;
 
+import com.techcourse.db.InMemoryUserRepository;
 import com.techcourse.exception.UncheckedServletException;
+import com.techcourse.model.User;
 import org.apache.coyote.Processor;
 import org.apache.coyote.http11.request.Http11Request;
 import org.apache.coyote.http11.request.Http11RequestBuilder;
@@ -16,6 +18,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Optional;
 
 public class Http11Processor implements Runnable, Processor {
 
@@ -52,6 +55,22 @@ public class Http11Processor implements Runnable, Processor {
     public Http11Response catalina(Http11Request request) throws IOException {
         if (request.getRequestLine().getUri().equals("/")) {
             return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, "Hello world!");
+        }
+
+        if (request.getRequestLine().getUri().equals("/login")) {
+            final URL resource = getClass().getClassLoader().getResource("static/login.html");
+            String filePath = resource.getFile();
+            final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
+            String account = request.getRequestLine().getRequestUri().getQueryParams().get("account");
+            String password = request.getRequestLine().getRequestUri().getQueryParams().get("password");
+            Optional<User> user = InMemoryUserRepository.findByAccount(account);
+            if (user.isPresent()) {
+                User currentUser = user.get();
+                if (currentUser.checkPassword(password)) {
+                    System.out.println(currentUser);
+                }
+            }
+            return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, responseBody);
         }
 
         final URL resource = getClass().getClassLoader().getResource("static/" + request.getRequestLine().getUri());
