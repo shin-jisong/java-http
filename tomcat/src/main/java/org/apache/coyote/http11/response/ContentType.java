@@ -10,4 +10,12 @@ public enum ContentType {
         this.mediaType = mediaType;
         this.parameter = parameter;
     }
+
+    public String getMediaType() {
+        return mediaType;
+    }
+
+    public String getParameter() {
+        return parameter;
+    }
 }

@@ -9,4 +9,12 @@ public class ResponseHeader {
         this.contentType = contentType;
         this.contentLength = contentLength;
     }
+
+    public ContentType getContentType() {
+        return contentType;
+    }
+
+    public long getContentLength() {
+        return contentLength;
+    }
 }
