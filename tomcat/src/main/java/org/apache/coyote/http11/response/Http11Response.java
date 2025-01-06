@@ -16,8 +16,36 @@ public class Http11Response {
         return statusLine;
     }
 
+    public String getHttpVersion() {
+        return statusLine.getHttpVersion();
+    }
+
+    public int getStatusCode() {
+        return statusLine.getStatusCode().getCode();
+    }
+
+    public String getStatusReasonPhrase() {
+        return statusLine.getStatusCode().getReasonPhrase();
+    }
+
     public ResponseHeader getHeader() {
         return header;
+    }
+
+    public String getMediaType() {
+        return header.getContentType().getMediaType();
+    }
+
+    public String getContentTypeParameter() {
+        return header.getContentType().getParameter();
+    }
+
+    public String getContentTypeExtension() {
+        return header.getContentType().getExtension();
+    }
+
+    public long getContentLength() {
+        return header.getContentLength();
     }
 
     public String getBody() {
