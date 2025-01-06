@@ -2,6 +2,11 @@ package org.apache.coyote.http11;
 
 import com.techcourse.exception.UncheckedServletException;
 import org.apache.coyote.Processor;
+import org.apache.coyote.http11.response.ContentType;
+import org.apache.coyote.http11.response.Http11Response;
+import org.apache.coyote.http11.response.Http11ResponseBuilder;
+import org.apache.coyote.http11.response.Http11ResponseWriter;
+import org.apache.coyote.http11.response.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,17 +34,11 @@ public class Http11Processor implements Runnable, Processor {
         try (final var inputStream = connection.getInputStream();
              final var outputStream = connection.getOutputStream()) {
 
-            final var responseBody = "Hello world!";
+            Http11Response response = Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, "Hello world!");
 
-            final var response = String.join("\r\n",
-                    "HTTP/1.1 200 OK ",
-                    "Content-Type: text/html;charset=utf-8 ",
-                    "Content-Length: " + responseBody.getBytes().length + " ",
-                    "",
-                    responseBody);
-
-            outputStream.write(response.getBytes());
+            outputStream.write(Http11ResponseWriter.write(response));
             outputStream.flush();
+
         } catch (IOException | UncheckedServletException e) {
             log.error(e.getMessage(), e);
         }
