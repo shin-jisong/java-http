@@ -1,6 +1,5 @@
 package org.apache.coyote.http11.response;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class Http11ResponseWriter {
