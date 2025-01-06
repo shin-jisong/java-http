@@ -20,10 +20,6 @@ public class RequestLine {
         return requestUri;
     }
 
-    public String getUri() {
-        return requestUri.getUri();
-    }
-
     public String getHttpVersion() {
         return httpVersion;
     }

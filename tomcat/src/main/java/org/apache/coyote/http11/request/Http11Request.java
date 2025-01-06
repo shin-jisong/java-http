@@ -17,8 +17,28 @@ public class Http11Request {
         return requestLine;
     }
 
+    public HttpMethod getHttpMethod() {
+        return requestLine.getHttpMethod();
+    }
+
+    public String getUri() {
+        return requestLine.getRequestUri().getUri();
+    }
+
+    public String getQueryParameter(String key) {
+        return requestLine.getRequestUri().getQueryParams().get(key);
+    }
+
+    public String getHttpVersion() {
+        return requestLine.getHttpVersion();
+    }
+
     public RequestHeader getHeader() {
         return header;
+    }
+
+    public Object getHeaderValue(String name) {
+        return header.get(name);
     }
 
     public String getBody() {

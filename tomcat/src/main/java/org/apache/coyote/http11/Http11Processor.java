@@ -53,16 +53,16 @@ public class Http11Processor implements Runnable, Processor {
     }
 
     public Http11Response catalina(Http11Request request) throws IOException {
-        if (request.getRequestLine().getUri().equals("/")) {
+        if (request.getUri().equals("/")) {
             return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, "Hello world!");
         }
 
-        if (request.getRequestLine().getUri().equals("/login")) {
+        if (request.getUri().equals("/login")) {
             final URL resource = getClass().getClassLoader().getResource("static/login.html");
             String filePath = resource.getFile();
             final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
-            String account = request.getRequestLine().getRequestUri().getQueryParams().get("account");
-            String password = request.getRequestLine().getRequestUri().getQueryParams().get("password");
+            String account = request.getQueryParameter("account");
+            String password = request.getQueryParameter("password");
             Optional<User> user = InMemoryUserRepository.findByAccount(account);
             if (user.isPresent()) {
                 User currentUser = user.get();
@@ -73,7 +73,7 @@ public class Http11Processor implements Runnable, Processor {
             return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, responseBody);
         }
 
-        final URL resource = getClass().getClassLoader().getResource("static/" + request.getRequestLine().getUri());
+        final URL resource = getClass().getClassLoader().getResource("static/" + request.getUri());
         String filePath = resource.getFile();
         int dotIndex = filePath.lastIndexOf('.');
         String extension = filePath.substring(dotIndex + 1);
