@@ -9,12 +9,12 @@ import java.util.Map;
 
 public class Http11RequestBuilder {
 
-    private final static String HTTP_11 = "HTTP/1.1";
-    private final static String CONTENT_LENGTH = "Content-Length";
-    private final static String HEADER_REGEX = ": ";
-    private final static int HEADER_PART_LENGTH = 2;
-    private final static int HEADER_KEY_INDEX = 0;
-    private final static int HEADER_VALUE_INDEX = 1;
+    private static final String HTTP_11 = "HTTP/1.1";
+    private static final String CONTENT_LENGTH = "Content-Length";
+    private static final String HEADER_REGEX = ": ";
+    private static final int HEADER_PART_LENGTH = 2;
+    private static final int HEADER_KEY_INDEX = 0;
+    private static final int HEADER_VALUE_INDEX = 1;
 
     public static Http11Request build(InputStream inputStream) throws IOException {
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
