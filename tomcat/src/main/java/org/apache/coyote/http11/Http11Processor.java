@@ -58,19 +58,30 @@ public class Http11Processor implements Runnable, Processor {
         }
 
         if (request.getUri().equals("/login")) {
-            final URL resource = getClass().getClassLoader().getResource("static/login.html");
-            String filePath = resource.getFile();
-            final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
             String account = request.getQueryParameter("account");
             String password = request.getQueryParameter("password");
+            if (account == null || password == null) {
+                final URL resource = getClass().getClassLoader().getResource("static/login.html");
+                String filePath = resource.getFile();
+                final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
+                return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, responseBody);
+            }
+
             Optional<User> user = InMemoryUserRepository.findByAccount(account);
             if (user.isPresent()) {
                 User currentUser = user.get();
                 if (currentUser.checkPassword(password)) {
-                    System.out.println(currentUser);
+                    log.info(currentUser.toString());
+                    final URL resource = getClass().getClassLoader().getResource("static/index.html");
+                    String filePath = resource.getFile();
+                    final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
+                    return Http11ResponseBuilder.build(StatusCode.FOUND, ContentType.TEXT_HTML_UTF8, responseBody);
                 }
             }
-            return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, responseBody);
+            final URL resource = getClass().getClassLoader().getResource("static/401.html");
+            String filePath = resource.getFile();
+            final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
+            return Http11ResponseBuilder.build(StatusCode.UNAUTHORIZED, ContentType.TEXT_HTML_UTF8, responseBody);
         }
 
         final URL resource = getClass().getClassLoader().getResource("static/" + request.getUri());
