@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,7 +22,7 @@ public class Http11RequestBuilder {
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         RequestLine requestLine = buildRequestLine(reader);
         RequestHeader requestHeader = buildRequestHeader(reader);
-        String body = buildRequestBody(requestHeader, reader);
+        Map<String, String> body = buildRequestBody(requestHeader, reader);
         return new Http11Request(requestLine, requestHeader, body);
     }
 
@@ -87,7 +89,7 @@ public class Http11RequestBuilder {
         }
     }
 
-    private static String buildRequestBody(RequestHeader requestHeader, BufferedReader reader) throws IOException {
+    private static Map<String, String> buildRequestBody(RequestHeader requestHeader, BufferedReader reader) throws IOException {
         String contentLengthHeader = (String) requestHeader.get(CONTENT_LENGTH);
         String body = null;
         if (contentLengthHeader != null) {
@@ -96,7 +98,36 @@ public class Http11RequestBuilder {
             reader.read(bodyChars);
             body = new String(bodyChars);
         }
-        return body;
+        return parsingRequestBody(body);
+    }
+
+    private static Map<String, String> parsingRequestBody(String body) {
+        Map<String, String> result = new HashMap<>();
+        if (body == null || body.isEmpty()) {
+            return result;
+        }
+        String[] pairs = body.split("&");
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=", 2); // 최대 2개로만 split
+            parsingKeyAndValue(keyValue, result);
+            parsingKey(keyValue, result);
+        }
+        return result;
+    }
+
+    private static void parsingKeyAndValue(String[] keyValue, Map<String, String> result) {
+        if (keyValue.length == 2) {
+            String key = keyValue[0];
+            String value = keyValue[1];
+            result.put(key, value);
+        }
+    }
+
+    private static void parsingKey(String[] keyValue, Map<String, String> result) {
+        if (keyValue.length == 1) {
+            String key = keyValue[0];
+            result.put(key, "");
+        }
     }
 
     private static void validateRequestLine(String request) throws IOException {
