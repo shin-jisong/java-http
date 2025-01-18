@@ -6,6 +6,7 @@ import com.techcourse.model.User;
 import org.apache.coyote.Processor;
 import org.apache.coyote.http11.request.Http11Request;
 import org.apache.coyote.http11.request.Http11RequestBuilder;
+import org.apache.coyote.http11.request.HttpMethod;
 import org.apache.coyote.http11.response.ContentType;
 import org.apache.coyote.http11.response.Http11Response;
 import org.apache.coyote.http11.response.Http11ResponseBuilder;
@@ -18,6 +19,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
 import java.nio.file.Files;
+import java.util.Map;
 import java.util.Optional;
 
 public class Http11Processor implements Runnable, Processor {
@@ -58,31 +60,54 @@ public class Http11Processor implements Runnable, Processor {
         }
 
         if (request.getUri().equals("/login")) {
-            String account = request.getQueryParameter("account");
-            String password = request.getQueryParameter("password");
-            if (account == null || password == null) {
+            if (request.getHttpMethod().equals(HttpMethod.GET)) {
                 final URL resource = getClass().getClassLoader().getResource("static/login.html");
                 String filePath = resource.getFile();
                 final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
                 return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, responseBody);
             }
 
-            Optional<User> user = InMemoryUserRepository.findByAccount(account);
-            if (user.isPresent()) {
-                User currentUser = user.get();
-                if (currentUser.checkPassword(password)) {
-                    log.info(currentUser.toString());
-                    final URL resource = getClass().getClassLoader().getResource("static/index.html");
-                    String filePath = resource.getFile();
-                    final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
-                    return Http11ResponseBuilder.build(StatusCode.FOUND, ContentType.TEXT_HTML_UTF8, responseBody);
+            if (request.getHttpMethod().equals(HttpMethod.POST)) {
+                String account = request.getQueryParameter("account");
+                String password = request.getQueryParameter("password");
+                Optional<User> user = InMemoryUserRepository.findByAccount(account);
+                if (user.isPresent()) {
+                    User currentUser = user.get();
+                    if (currentUser.checkPassword(password)) {
+                        log.info(currentUser.toString());
+                        final URL resource = getClass().getClassLoader().getResource("static/index.html");
+                        String filePath = resource.getFile();
+                        final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
+                        return Http11ResponseBuilder.build(StatusCode.FOUND, ContentType.TEXT_HTML_UTF8, responseBody);
+                    }
                 }
+                final URL resource = getClass().getClassLoader().getResource("static/401.html");
+                String filePath = resource.getFile();
+                final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
+                return Http11ResponseBuilder.build(StatusCode.UNAUTHORIZED, ContentType.TEXT_HTML_UTF8, responseBody);
             }
-            final URL resource = getClass().getClassLoader().getResource("static/401.html");
-            String filePath = resource.getFile();
-            final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
-            return Http11ResponseBuilder.build(StatusCode.UNAUTHORIZED, ContentType.TEXT_HTML_UTF8, responseBody);
         }
+
+        if (request.getUri().equals("/register")) {
+            if (request.getHttpMethod().equals(HttpMethod.GET)) {
+                final URL resource = getClass().getClassLoader().getResource("static/register.html");
+                String filePath = resource.getFile();
+                final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
+                return Http11ResponseBuilder.build(StatusCode.FOUND, ContentType.TEXT_HTML_UTF8, responseBody);
+            }
+            if (request.getHttpMethod().equals(HttpMethod.POST)) {
+                Map<String, String> body = request.getBody();
+                // TODO: 예외 처리
+                User user = new User(body.get("account"), body.get("email"), body.get("password"));
+                InMemoryUserRepository.save(user);
+                final URL resource = getClass().getClassLoader().getResource("static/index.html");
+                String filePath = resource.getFile();
+                final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
+                return Http11ResponseBuilder.build(StatusCode.FOUND, ContentType.TEXT_HTML_UTF8, responseBody);
+            }
+
+        }
+
 
         final URL resource = getClass().getClassLoader().getResource("static/" + request.getUri());
         String filePath = resource.getFile();
