@@ -1,5 +1,6 @@
 package org.apache.coyote.http11.response;
 
+import org.apache.coyote.http11.cookie.HttpCookie;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +19,7 @@ class Http11ResponseWriterTest {
         String body = "<html><body>Hello World</body></html>";
 
         ResponseStatusLine statusLine = new ResponseStatusLine("HTTP/1.1", statusCode);
-        ResponseHeader header = new ResponseHeader(contentType, body.getBytes(StandardCharsets.UTF_8).length);
+        ResponseHeader header = new ResponseHeader(contentType, body.getBytes(StandardCharsets.UTF_8).length, new HttpCookie());
         Http11Response response = new Http11Response(statusLine, header, body);
 
         byte[] result = Http11ResponseWriter.write(response);
