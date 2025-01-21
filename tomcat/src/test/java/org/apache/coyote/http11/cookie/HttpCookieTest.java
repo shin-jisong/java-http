@@ -17,7 +17,7 @@ class HttpCookieTest {
         HttpCookie httpCookie = new HttpCookie();
 
         // when
-        httpCookie.putSessionCookie();
+        httpCookie.putSessionCookie("cookie");
 
         // then
         Map<String, String> cookies = httpCookie.getCookies();
@@ -35,7 +35,7 @@ class HttpCookieTest {
         httpCookie.put("JSESSIONID", "existing-session-id");
 
         // when
-        httpCookie.putSessionCookie();
+        httpCookie.putSessionCookie("cookie");
 
         // then
         Map<String, String> cookies = httpCookie.getCookies();

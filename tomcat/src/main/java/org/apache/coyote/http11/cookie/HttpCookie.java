@@ -14,10 +14,14 @@ public class HttpCookie {
         this.cookies = new HashMap<>();
     }
 
-    public void putSessionCookie() {
+    public void putSessionCookie(String value) {
         if (!cookies.containsKey(SESSION_ID)) {
-            put(SESSION_ID, String.valueOf(UUID.randomUUID()));
+            put(SESSION_ID, value);
         }
+    }
+
+    public String getSessionCookie() {
+        return cookies.get(SESSION_ID);
     }
 
     public void put(String name, String value) {
