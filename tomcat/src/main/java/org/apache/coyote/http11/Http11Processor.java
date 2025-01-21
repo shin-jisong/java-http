@@ -4,6 +4,7 @@ import com.techcourse.db.InMemoryUserRepository;
 import com.techcourse.exception.UncheckedServletException;
 import com.techcourse.model.User;
 import org.apache.coyote.Processor;
+import org.apache.coyote.http11.cookie.HttpCookie;
 import org.apache.coyote.http11.request.Http11Request;
 import org.apache.coyote.http11.request.Http11RequestBuilder;
 import org.apache.coyote.http11.request.HttpMethod;
@@ -18,7 +19,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
@@ -68,8 +71,9 @@ public class Http11Processor implements Runnable, Processor {
             }
 
             if (request.getHttpMethod().equals(HttpMethod.POST)) {
-                String account = request.getQueryParameter("account");
-                String password = request.getQueryParameter("password");
+                String account = request.getBodyValue("account");
+                String password = request.getBodyValue("password");
+                // 예외 처리
                 Optional<User> user = InMemoryUserRepository.findByAccount(account);
                 if (user.isPresent()) {
                     User currentUser = user.get();
@@ -78,7 +82,9 @@ public class Http11Processor implements Runnable, Processor {
                         final URL resource = getClass().getClassLoader().getResource("static/index.html");
                         String filePath = resource.getFile();
                         final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
-                        return Http11ResponseBuilder.build(StatusCode.FOUND, ContentType.TEXT_HTML_UTF8, responseBody);
+                        HttpCookie httpCookie = new HttpCookie();
+                        httpCookie.putSessionCookie();
+                        return Http11ResponseBuilder.build(StatusCode.FOUND, ContentType.TEXT_HTML_UTF8, httpCookie, responseBody);
                     }
                 }
                 final URL resource = getClass().getClassLoader().getResource("static/401.html");
