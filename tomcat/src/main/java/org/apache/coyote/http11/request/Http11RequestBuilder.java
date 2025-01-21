@@ -4,8 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -14,6 +13,7 @@ public class Http11RequestBuilder {
     private static final String HTTP_11 = "HTTP/1.1";
     private static final String CONTENT_LENGTH = "Content-Length";
     private static final String HEADER_REGEX = ": ";
+    private static final String COOKIE_HEADER = "Cookie";
     private static final int HEADER_PART_LENGTH = 2;
     private static final int HEADER_KEY_INDEX = 0;
     private static final int HEADER_VALUE_INDEX = 1;
@@ -78,9 +78,24 @@ public class Http11RequestBuilder {
         RequestHeader requestHeader = new RequestHeader();
         while ((headerLine = reader.readLine()) != null && !headerLine.isEmpty()) {
             String[] headerParts = headerLine.split(HEADER_REGEX);
-            putHeader(headerParts, requestHeader);
+            buildCookieOrOtherHeader(headerParts, requestHeader);
         }
         return requestHeader;
+    }
+
+    private static void buildCookieOrOtherHeader(String[] headerParts, RequestHeader requestHeader) {
+        if (headerParts[HEADER_KEY_INDEX].equals(COOKIE_HEADER)) {
+            buildCookie(headerParts[HEADER_VALUE_INDEX], requestHeader);
+            return;
+        }
+        putHeader(headerParts, requestHeader);
+    }
+
+    private static void buildCookie(String cookies, RequestHeader requestHeader) {
+        Arrays.stream(cookies.split("; "))
+                .map(pair -> pair.split("=", HEADER_PART_LENGTH))
+                .filter(keyValue -> keyValue.length == 2)
+                .forEach(keyValue -> requestHeader.putCookie(keyValue[0], keyValue[1]));
     }
 
     private static void putHeader(String[] headerParts, RequestHeader requestHeader) {
