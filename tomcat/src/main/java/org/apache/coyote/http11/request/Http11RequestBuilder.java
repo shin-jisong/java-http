@@ -121,6 +121,12 @@ public class Http11RequestBuilder {
         if (body == null || body.isEmpty()) {
             return result;
         }
+
+        if (!body.contains("=") && !body.contains("&")) {
+            result.put("body", body);
+            return result;
+        }
+
         String[] pairs = body.split("&");
         for (String pair : pairs) {
             String[] keyValue = pair.split("=", 2); // 최대 2개로만 split
