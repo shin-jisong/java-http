@@ -43,6 +43,10 @@ public class Http11Request {
         return header.get(name);
     }
 
+    public String getBodyValue(String name) {
+        return body.get(name);
+    }
+
     public Map<String, String> getBody() {
         return body;
     }
