@@ -5,6 +5,8 @@ import com.techcourse.exception.UncheckedServletException;
 import com.techcourse.model.User;
 import org.apache.coyote.Processor;
 import org.apache.coyote.http11.cookie.HttpCookie;
+import org.apache.coyote.http11.cookie.Session;
+import org.apache.coyote.http11.cookie.SessionManager;
 import org.apache.coyote.http11.request.Http11Request;
 import org.apache.coyote.http11.request.Http11RequestBuilder;
 import org.apache.coyote.http11.request.HttpMethod;
@@ -30,6 +32,7 @@ public class Http11Processor implements Runnable, Processor {
     private static final Logger log = LoggerFactory.getLogger(Http11Processor.class);
 
     private final Socket connection;
+    private final SessionManager sessionManager = new SessionManager();
 
     public Http11Processor(final Socket connection) {
         this.connection = connection;
@@ -64,6 +67,16 @@ public class Http11Processor implements Runnable, Processor {
 
         if (request.getUri().equals("/login")) {
             if (request.getHttpMethod().equals(HttpMethod.GET)) {
+                String sessionId = request.getHeader().getCookie("JSESSIONID");
+                if (sessionId != null) {
+                    if (sessionManager.findSession(sessionId) != null) {
+                        //리다이렉트로
+                        final URL resource = getClass().getClassLoader().getResource("static/index.html");
+                        String filePath = resource.getFile();
+                        final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
+                        return Http11ResponseBuilder.build(StatusCode.OK, ContentType.TEXT_HTML_UTF8, responseBody);
+                    }
+                }
                 final URL resource = getClass().getClassLoader().getResource("static/login.html");
                 String filePath = resource.getFile();
                 final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
@@ -84,6 +97,7 @@ public class Http11Processor implements Runnable, Processor {
                         final String responseBody = new String(Files.readAllBytes(new File(filePath).toPath()));
                         HttpCookie httpCookie = new HttpCookie();
                         httpCookie.putSessionCookie();
+                        sessionManager.add(new Session(httpCookie.get("JSESSIONID")));
                         return Http11ResponseBuilder.build(StatusCode.FOUND, ContentType.TEXT_HTML_UTF8, httpCookie, responseBody);
                     }
                 }
