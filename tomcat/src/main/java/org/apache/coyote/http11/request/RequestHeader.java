@@ -26,7 +26,15 @@ public class RequestHeader {
         cookie.put(name, value);
     }
 
-    public String getCookie(String name) {
+    public String getCookieValue(String name) {
         return cookie.get(name);
+    }
+
+    public String getSessionCookie() {
+        return cookie.getSessionCookie();
+    }
+
+    public HttpCookie getCookie() {
+        return cookie;
     }
 }
