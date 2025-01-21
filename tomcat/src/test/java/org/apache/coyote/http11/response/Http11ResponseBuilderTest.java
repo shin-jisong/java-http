@@ -15,7 +15,8 @@ class Http11ResponseBuilderTest {
         ContentType contentType = ContentType.TEXT_HTML_UTF8;
         String body = "<html><body>Hello World</body></html>";
 
-        Http11Response response = Http11ResponseBuilder.build(statusCode, contentType, body);
+        Http11Response response = new Http11Response();
+        Http11ResponseBuilder.build(response, statusCode, contentType, body);
 
         assertAll(
                 () -> assertThat(response.getHttpVersion()).isEqualTo("HTTP/1.1"),
@@ -33,7 +34,8 @@ class Http11ResponseBuilderTest {
         ContentType contentType = ContentType.TEXT_HTML_UTF8;
         String body = "";
 
-        Http11Response response = Http11ResponseBuilder.build(statusCode, contentType, body);
+        Http11Response response = new Http11Response();
+        Http11ResponseBuilder.build(response, statusCode, contentType, body);
 
         assertAll(
                 () -> assertThat(response.getHttpVersion()).isEqualTo("HTTP/1.1"),
