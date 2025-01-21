@@ -9,6 +9,7 @@ public class Http11ResponseWriter {
     private final static String CONTENT_TYPE = "Content-Type";
     private final static String CONTENT_LENGTH = "Content-Length";
     private final static String COOKIE = "Set-Cookie: ";
+    private final static String LOCATION = "Location";
 
     public static byte[] write(Http11Response response) {
         String responseString = String.format("%s%s%n%s",
@@ -28,13 +29,18 @@ public class Http11ResponseWriter {
     }
 
     private static String writeHeader(ResponseHeader header) {
-        return String.format("%s%s%s",
+        return String.format("%s%s%s%s",
                 writeCookie(header.getCookie()),
+                writeLocation(header.getLocation()),
                 writeContentType(header.getContentType()),
                 writeContentLength(header.getContentLength()));
     }
 
     private static String writeContentType(ContentType contentType) {
+        if (contentType == null) {
+            return "";
+        }
+
         String mediaType = contentType.getMediaType();
         String parameter = contentType.getParameter();
 
@@ -45,12 +51,15 @@ public class Http11ResponseWriter {
         return String.format("%s: %s %n", CONTENT_TYPE, mediaType);
     }
 
-    private static String writeContentLength(long contentLength) {
+    private static String writeContentLength(Long contentLength) {
+        if (contentLength == null) {
+            return "";
+        }
         return String.format("%s: %s %n", CONTENT_LENGTH, contentLength);
     }
 
     private static String writeCookie(HttpCookie cookie) {
-        if (cookie == null) {
+        if (cookie == null || cookie.getCookies().isEmpty()) {
             return "";
         }
         StringBuilder cookieResponse = new StringBuilder(COOKIE);
@@ -62,5 +71,12 @@ public class Http11ResponseWriter {
             cookieResponse.setLength(cookieResponse.length() - 2);
         }
         return String.format("%s%n", cookieResponse);
+    }
+
+    private static String writeLocation(String location) {
+        if (location == null) {
+            return "";
+        }
+        return String.format("%s: %s%n", LOCATION, location);
     }
 }

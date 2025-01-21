@@ -19,8 +19,9 @@ class Http11ResponseWriterTest {
         String body = "<html><body>Hello World</body></html>";
 
         ResponseStatusLine statusLine = new ResponseStatusLine("HTTP/1.1", statusCode);
-        ResponseHeader header = new ResponseHeader(contentType, body.getBytes(StandardCharsets.UTF_8).length, new HttpCookie());
-        Http11Response response = new Http11Response(statusLine, header, body);
+        ResponseHeader header = new ResponseHeader(contentType, (long) body.getBytes(StandardCharsets.UTF_8).length, new HttpCookie());
+        Http11Response response = new Http11Response();
+        response.add(statusLine, header, body);
 
         byte[] result = Http11ResponseWriter.write(response);
         String resultString = new String(result, StandardCharsets.UTF_8);
