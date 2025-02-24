@@ -30,7 +30,7 @@ class Http11RequestBuilderTest {
                 () -> assertThat(request.getQueryParameter("account")).isEqualTo("gugu"),
                 () -> assertThat(request.getQueryParameter("password")).isEqualTo("password"),
                 () -> assertThat(request.getHeaderValue("Content-Length")).isEqualTo("11"),
-                () -> assertThat(request.getBody()).isEqualTo("Hello World")
+                () -> assertThat(request.getBodyValue("body")).isEqualTo("Hello World")
         );
     }
 
@@ -66,7 +66,7 @@ class Http11RequestBuilderTest {
                 () -> assertThat(request.getHttpMethod()).isEqualTo(HttpMethod.GET),
                 () -> assertThat(request.getUri()).isEqualTo("/login"),
                 () -> assertThat(request.getQueryParameter("account")).isEqualTo("gugu"),
-                () -> assertThat(request.getBody()).isNull()
+                () -> assertThat(request.getBody()).isEmpty()
         );
     }
 

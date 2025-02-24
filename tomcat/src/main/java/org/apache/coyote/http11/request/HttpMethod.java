@@ -3,7 +3,8 @@ package org.apache.coyote.http11.request;
 import java.util.Arrays;
 
 public enum HttpMethod {
-    GET;
+    GET,
+    POST;
 
     public static HttpMethod from(String method) {
         return Arrays.stream(values())

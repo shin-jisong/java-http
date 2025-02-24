@@ -2,11 +2,13 @@ package org.apache.coyote.http11.response;
 
 public class Http11Response {
 
-    private final ResponseStatusLine statusLine;
-    private final ResponseHeader header;
-    private final String body;
+    private ResponseStatusLine statusLine;
+    private ResponseHeader header;
+    private String body;
 
-    public Http11Response(ResponseStatusLine statusLine, ResponseHeader header, String body) {
+    public Http11Response() {}
+
+    public void add(ResponseStatusLine statusLine, ResponseHeader header, String body) {
         this.statusLine = statusLine;
         this.header = header;
         this.body = body;

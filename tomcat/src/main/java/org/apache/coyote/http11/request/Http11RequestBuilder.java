@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -12,6 +13,7 @@ public class Http11RequestBuilder {
     private static final String HTTP_11 = "HTTP/1.1";
     private static final String CONTENT_LENGTH = "Content-Length";
     private static final String HEADER_REGEX = ": ";
+    private static final String COOKIE_HEADER = "Cookie";
     private static final int HEADER_PART_LENGTH = 2;
     private static final int HEADER_KEY_INDEX = 0;
     private static final int HEADER_VALUE_INDEX = 1;
@@ -20,7 +22,7 @@ public class Http11RequestBuilder {
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
         RequestLine requestLine = buildRequestLine(reader);
         RequestHeader requestHeader = buildRequestHeader(reader);
-        String body = buildRequestBody(requestHeader, reader);
+        Map<String, String> body = buildRequestBody(requestHeader, reader);
         return new Http11Request(requestLine, requestHeader, body);
     }
 
@@ -76,9 +78,24 @@ public class Http11RequestBuilder {
         RequestHeader requestHeader = new RequestHeader();
         while ((headerLine = reader.readLine()) != null && !headerLine.isEmpty()) {
             String[] headerParts = headerLine.split(HEADER_REGEX);
-            putHeader(headerParts, requestHeader);
+            buildCookieOrOtherHeader(headerParts, requestHeader);
         }
         return requestHeader;
+    }
+
+    private static void buildCookieOrOtherHeader(String[] headerParts, RequestHeader requestHeader) {
+        if (headerParts[HEADER_KEY_INDEX].equals(COOKIE_HEADER)) {
+            buildCookie(headerParts[HEADER_VALUE_INDEX], requestHeader);
+            return;
+        }
+        putHeader(headerParts, requestHeader);
+    }
+
+    private static void buildCookie(String cookies, RequestHeader requestHeader) {
+        Arrays.stream(cookies.split("; "))
+                .map(pair -> pair.split("=", HEADER_PART_LENGTH))
+                .filter(keyValue -> keyValue.length == 2)
+                .forEach(keyValue -> requestHeader.putCookie(keyValue[0], keyValue[1]));
     }
 
     private static void putHeader(String[] headerParts, RequestHeader requestHeader) {
@@ -87,7 +104,7 @@ public class Http11RequestBuilder {
         }
     }
 
-    private static String buildRequestBody(RequestHeader requestHeader, BufferedReader reader) throws IOException {
+    private static Map<String, String> buildRequestBody(RequestHeader requestHeader, BufferedReader reader) throws IOException {
         String contentLengthHeader = (String) requestHeader.get(CONTENT_LENGTH);
         String body = null;
         if (contentLengthHeader != null) {
@@ -96,7 +113,42 @@ public class Http11RequestBuilder {
             reader.read(bodyChars);
             body = new String(bodyChars);
         }
-        return body;
+        return parsingRequestBody(body);
+    }
+
+    private static Map<String, String> parsingRequestBody(String body) {
+        Map<String, String> result = new HashMap<>();
+        if (body == null || body.isEmpty()) {
+            return result;
+        }
+
+        if (!body.contains("=") && !body.contains("&")) {
+            result.put("body", body);
+            return result;
+        }
+
+        String[] pairs = body.split("&");
+        for (String pair : pairs) {
+            String[] keyValue = pair.split("=", 2); // 최대 2개로만 split
+            parsingKeyAndValue(keyValue, result);
+            parsingKey(keyValue, result);
+        }
+        return result;
+    }
+
+    private static void parsingKeyAndValue(String[] keyValue, Map<String, String> result) {
+        if (keyValue.length == 2) {
+            String key = keyValue[0];
+            String value = keyValue[1];
+            result.put(key, value);
+        }
+    }
+
+    private static void parsingKey(String[] keyValue, Map<String, String> result) {
+        if (keyValue.length == 1) {
+            String key = keyValue[0];
+            result.put(key, "");
+        }
     }
 
     private static void validateRequestLine(String request) throws IOException {

@@ -1,13 +1,16 @@
 package org.apache.coyote.http11.request;
 
 
+import org.apache.coyote.http11.cookie.HttpCookie;
+import java.util.Map;
+
 public class Http11Request {
 
     private final RequestLine requestLine;
     private final RequestHeader header;
-    private final String body;
+    private final Map<String, String> body;
 
-    public Http11Request(RequestLine requestLine, RequestHeader header, String body) {
+    public Http11Request(RequestLine requestLine, RequestHeader header, Map<String, String> body) {
         this.requestLine = requestLine;
         this.header = header;
         this.body = body;
@@ -41,7 +44,19 @@ public class Http11Request {
         return header.get(name);
     }
 
-    public String getBody() {
+    public HttpCookie getCookie() {
+        return header.getCookie();
+    }
+
+    public String getSessionCookie() {
+        return header.getSessionCookie();
+    }
+
+    public String getBodyValue(String name) {
+        return body.get(name);
+    }
+
+    public Map<String, String> getBody() {
         return body;
     }
 }
