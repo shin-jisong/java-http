@@ -2,6 +2,7 @@ package com.techcourse.controller;
 
 import com.techcourse.db.InMemoryUserRepository;
 import com.techcourse.model.User;
+import org.apache.catalina.AbstractController;
 import org.apache.catalina.Controller;
 import org.apache.coyote.http11.cookie.HttpCookie;
 import org.apache.coyote.http11.cookie.Session;
@@ -15,22 +16,11 @@ import org.apache.coyote.http11.response.StatusCode;
 import java.util.Optional;
 import java.util.UUID;
 
-public class LoginController implements Controller {
+public class LoginController extends AbstractController {
 
     private final SessionManager sessionManager = new SessionManager();
 
     @Override
-    public void service(Http11Request request, Http11Response response) throws Exception {
-        HttpMethod method = request.getHttpMethod();
-        if (method.equals(HttpMethod.GET)) {
-            doGet(request, response);
-        }
-
-        if (method.equals(HttpMethod.POST)) {
-            doPost(request, response);
-        }
-    }
-
     protected void doGet(Http11Request request, Http11Response response) throws Exception {
         String sessionId = request.getSessionCookie();
         if (sessionId != null && sessionManager.findSession(sessionId) != null) {
@@ -40,6 +30,7 @@ public class LoginController implements Controller {
         Http11ResponseBuilder.buildFile(response, StatusCode.OK, ContentType.TEXT_HTML_UTF8, "login.html");
     }
 
+    @Override
     protected void doPost(Http11Request request, Http11Response response) throws Exception {
         String account = request.getBodyValue("account");
         String password = request.getBodyValue("password");
