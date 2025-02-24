@@ -1,34 +1,15 @@
 package org.apache.coyote.http11;
 
-import com.techcourse.controller.RequestMapping;
-import com.techcourse.db.InMemoryUserRepository;
-import com.techcourse.exception.UncheckedServletException;
-import com.techcourse.model.User;
 import org.apache.catalina.Controller;
 import org.apache.catalina.FileController;
 import org.apache.coyote.Processor;
-import org.apache.coyote.http11.cookie.HttpCookie;
-import org.apache.coyote.http11.cookie.Session;
-import org.apache.coyote.http11.cookie.SessionManager;
 import org.apache.coyote.http11.request.Http11Request;
 import org.apache.coyote.http11.request.Http11RequestBuilder;
-import org.apache.coyote.http11.request.HttpMethod;
-import org.apache.coyote.http11.response.ContentType;
 import org.apache.coyote.http11.response.Http11Response;
-import org.apache.coyote.http11.response.Http11ResponseBuilder;
 import org.apache.coyote.http11.response.Http11ResponseWriter;
-import org.apache.coyote.http11.response.StatusCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.File;
-import java.io.IOException;
 import java.net.Socket;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
 
 public class Http11Processor implements Runnable, Processor {
 
