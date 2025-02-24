@@ -3,12 +3,10 @@ package com.techcourse.controller;
 import com.techcourse.db.InMemoryUserRepository;
 import com.techcourse.model.User;
 import org.apache.catalina.AbstractController;
-import org.apache.catalina.Controller;
 import org.apache.coyote.http11.cookie.HttpCookie;
 import org.apache.coyote.http11.cookie.Session;
 import org.apache.coyote.http11.cookie.SessionManager;
 import org.apache.coyote.http11.request.Http11Request;
-import org.apache.coyote.http11.request.HttpMethod;
 import org.apache.coyote.http11.response.ContentType;
 import org.apache.coyote.http11.response.Http11Response;
 import org.apache.coyote.http11.response.Http11ResponseBuilder;
@@ -32,6 +30,12 @@ public class LoginController extends AbstractController {
 
     @Override
     protected void doPost(Http11Request request, Http11Response response) throws Exception {
+        String sessionId = request.getSessionCookie();
+        if (sessionId != null && sessionManager.findSession(sessionId) != null) {
+            Http11ResponseBuilder.buildRedirect(response, request.getCookie(), "index.html");
+            return;
+        }
+
         String account = request.getBodyValue("account");
         String password = request.getBodyValue("password");
 
@@ -42,7 +46,7 @@ public class LoginController extends AbstractController {
 
         Optional<User> user = InMemoryUserRepository.findByAccount(account);
         if (user.isPresent() && user.get().checkPassword(password)) {
-            String sessionId = UUID.randomUUID().toString();
+            sessionId = UUID.randomUUID().toString();
             sessionManager.add(new Session(sessionId));
             HttpCookie httpCookie = new HttpCookie();
             httpCookie.putSessionCookie(sessionId);
@@ -53,3 +57,4 @@ public class LoginController extends AbstractController {
         Http11ResponseBuilder.buildFile(response, StatusCode.UNAUTHORIZED, ContentType.TEXT_HTML_UTF8, "401.html");
     }
 }
+
